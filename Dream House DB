@@ -1,0 +1,109 @@
+-- 1. BRANCH
+CREATE TABLE Branch (
+    BranchNumber VARCHAR(10) PRIMARY KEY, -- PK: uniquely identifies each branch
+    Street VARCHAR(100),
+    City VARCHAR(50),
+    Postcode VARCHAR(10),
+    TelephoneNumbers VARCHAR(15)[3] -- Array to store up to 3 numbers
+);
+
+-- 2. STAFF
+CREATE TABLE Staff (
+    StaffNumber VARCHAR(10) PRIMARY KEY, -- PK: Unique staff ID across branches
+    Name VARCHAR(100),
+    Address VARCHAR(100),
+    Position VARCHAR(20),
+    Salary NUMERIC(10,2),
+    SupervisorStaffNumber VARCHAR(10),
+    BranchNumber VARCHAR(10),
+    Sex VARCHAR(10),
+    DOB DATE,
+    FOREIGN KEY (SupervisorStaffNumber) REFERENCES Staff(StaffNumber), -- FK: self-referencing
+    FOREIGN KEY (BranchNumber) REFERENCES Branch(BranchNumber) -- FK: staff is assigned to a branch
+);
+
+-- 3. PROPERTY_OWNER
+CREATE TABLE PropertyOwner (
+    OwnerNumber VARCHAR(10) PRIMARY KEY, -- PK: unique ID for all owners
+    Name VARCHAR(100),
+    TypeOfBusiness VARCHAR(50), -- Nullable for private owners
+    Address VARCHAR(100),
+    TelephoneNumber VARCHAR(15),
+    ContactName VARCHAR(100) -- Nullable for private owners
+);
+
+-- 4. PROPERTY_FOR_RENT
+CREATE TABLE PropertyForRent (
+    PropertyNumber VARCHAR(10) PRIMARY KEY, -- PK: unique identifier for a property
+    Street VARCHAR(100),
+    City VARCHAR(50),
+    Postcode VARCHAR(10),
+    Type VARCHAR(20),
+    NumberOfRooms INT,
+    MonthlyRent NUMERIC(10,2),
+    OwnerNumber VARCHAR(10),
+    ManagingStaffNumber VARCHAR(10),
+    BranchNumber VARCHAR(10),
+    FOREIGN KEY (OwnerNumber) REFERENCES PropertyOwner(OwnerNumber), -- FK: every property has an owner
+    FOREIGN KEY (ManagingStaffNumber) REFERENCES Staff(StaffNumber), -- FK: optional, if property is being managed
+    FOREIGN KEY (BranchNumber) REFERENCES Branch(BranchNumber) -- FK: property is linked to a branch
+);
+
+-- 5. CLIENT
+CREATE TABLE Client (
+    ClientNumber VARCHAR(10) PRIMARY KEY, -- PK: uniquely identifies each client
+    Name VARCHAR(100),
+    TelephoneNumber VARCHAR(15),
+    PreferredAccommodationType VARCHAR(50),
+    MaxRent NUMERIC(10,2),
+    RegisteredBranchNumber VARCHAR(10),
+    RegisteredByStaffNumber VARCHAR(10),
+    JoinDate DATE,
+    FOREIGN KEY (RegisteredBranchNumber) REFERENCES Branch(BranchNumber), -- FK: client registers at a branch
+    FOREIGN KEY (RegisteredByStaffNumber) REFERENCES Staff(StaffNumber) -- FK: staff registers the client
+);
+
+-- 6. LEASE
+CREATE TABLE Lease (
+    LeaseNumber VARCHAR(10) PRIMARY KEY, -- PK: unique lease ID
+    ClientNumber VARCHAR(10),
+    PropertyNumber VARCHAR(10),
+    MonthlyRent NUMERIC(10,2),
+    PaymentMethod VARCHAR(20),
+    DepositPaid BOOLEAN,
+    LeaseStartDate DATE,
+    LeaseEndDate DATE,
+    LeaseDuration INT,
+    FOREIGN KEY (ClientNumber) REFERENCES Client(ClientNumber), -- FK: client who rents
+    FOREIGN KEY (PropertyNumber) REFERENCES PropertyForRent(PropertyNumber) -- FK: property being leased
+);
+
+-- 7. NEWSPAPER
+CREATE TABLE Newspaper (
+    NewspaperName VARCHAR(100) PRIMARY KEY, -- PK: uniquely identifies a newspaper
+    Address VARCHAR(100),
+    TelephoneNumber VARCHAR(15),
+    ContactName VARCHAR(100)
+);
+
+-- 8. PROPERTY_ADVERTISEMENT
+CREATE TABLE PropertyAdvertisement (
+    AdvertisementID SERIAL PRIMARY KEY, -- PK: surrogate key for uniqueness
+    PropertyNumber VARCHAR(10),
+    NewspaperName VARCHAR(100),
+    DateAdvertised DATE,
+    AdvertisementCost NUMERIC(10,2),
+    FOREIGN KEY (PropertyNumber) REFERENCES PropertyForRent(PropertyNumber), -- FK
+    FOREIGN KEY (NewspaperName) REFERENCES Newspaper(NewspaperName) -- FK
+);
+
+-- 9. PROPERTY_VIEWING
+CREATE TABLE PropertyViewing (
+    ViewingID SERIAL PRIMARY KEY, -- PK: surrogate key
+    ClientNumber VARCHAR(10),
+    PropertyNumber VARCHAR(10),
+    ViewingDate DATE,
+    Comments TEXT,
+    FOREIGN KEY (ClientNumber) REFERENCES Client(ClientNumber),
+    FOREIGN KEY (PropertyNumber) REFERENCES PropertyForRent(PropertyNumber)
+);
